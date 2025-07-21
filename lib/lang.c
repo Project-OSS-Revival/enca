@@ -51,6 +51,7 @@ static const EncaLanguageInfo *const LANGUAGE_LIST[] = {
   &ENCA_LANGUAGE_BG, /* Bulgarian. */
   &ENCA_LANGUAGE_CS, /* Czech. */
   &ENCA_LANGUAGE_ET, /* Estonian. */
+  &ENCA_LANGUAGE_FI, /* Finnish. */
   &ENCA_LANGUAGE_HR, /* Croatian. */
   &ENCA_LANGUAGE_HU, /* Hungarian. */
   &ENCA_LANGUAGE_LT, /* Latvian. */

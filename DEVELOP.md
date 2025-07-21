@@ -70,7 +70,7 @@ Specifically, for multibyte encodings:
       existing languages in `data/*` and read `data/README`.  
 * `lib/internal.h`:
     * Add new `ENCA_LANGUAGE_....`
-* `lib/lang.c`:
+* `src/lang.c`:
     * Add a new `LANGUAGE_LIST[]` entry pointing to the `ENCA_LANGUAGE_....`
 
 

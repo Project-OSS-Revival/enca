@@ -350,7 +350,6 @@ static_iso639_alias_convert(const char *locname)
     { "croatian", "hr" },
     { "czech", "cs" },
     { "estonian", "et" },
-    { "finnish", "fi" },
     { "hungarian", "hu" },
     { "lativan", "lt" },
     { "lettic", "lv" },

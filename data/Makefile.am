@@ -16,7 +16,6 @@ noinst_HEADERS = \
   croatian/croatian.h \
   czech/czech.h \
   estonian/estonian.h \
-  finnish/finnish.h \
   hungarian/hungarian.h \
   latvian/latvian.h \
   lithuanian/lithuanian.h \
@@ -47,7 +46,6 @@ noinst_SCRPITS = \
   croatian/doit.sh \
   czech/doit.sh \
   estonian/doit.sh \
-  finnish/doit.sh \
   hungarian/doit.sh \
   latvian/doit.sh \
   lithuanian/doit.sh \
@@ -63,7 +61,6 @@ BASES = \
   croatian/cp1250.base \
   czech/iso88592.base \
   estonian/iso88594.base \
-  finnish/iso88594.base \
   hungarian/iso88592.base \
   russian/koi8r.base \
   latvian/cp1257.base \
@@ -79,7 +76,6 @@ RAWCOUNTS = \
   croatian/rawcounts.cp1250 \
   czech/rawcounts.iso88592 \
   estonian/rawcounts.iso88594 \
-  finnish/rawcounts.iso88594 \
   hungarian/rawcounts.iso88592 \
   latvian/rawcounts.cp1257 \
   lithuanian/rawcounts.cp1257 \

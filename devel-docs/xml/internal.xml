@@ -1511,6 +1511,14 @@ UTF-8, negative doubly-encoded.</para></entry>
 <para>Estonian language.</para>
 <para>Everything the world out there needs to know about this language.</para>
 </refsect2>
+<refsect2 id="ENCA-LANGUAGE-FI:CAPS" role="variable">
+<title>ENCA_LANGUAGE_FI</title>
+<indexterm zone="ENCA-LANGUAGE-FI:CAPS"><primary>ENCA_LANGUAGE_FI</primary></indexterm>
+<programlisting language="C">extern const EncaLanguageInfo ENCA_LANGUAGE_FI;
+</programlisting>
+<para>Finnish language.</para>
+<para>Everything the world out there needs to know about this language.</para>
+</refsect2>
 <refsect2 id="ENCA-LANGUAGE-HR:CAPS" role="variable">
 <title>ENCA_LANGUAGE_HR</title>
 <indexterm zone="ENCA-LANGUAGE-HR:CAPS"><primary>ENCA_LANGUAGE_HR</primary></indexterm>

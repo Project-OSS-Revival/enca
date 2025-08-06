@@ -438,6 +438,10 @@ extern const EncaLanguageInfo ENCA_LANGUAGE_CS;
 extern const EncaLanguageInfo ENCA_LANGUAGE_ET;
 </VARIABLE>
 <VARIABLE>
+<NAME>ENCA_LANGUAGE_FI</NAME>
+extern const EncaLanguageInfo ENCA_LANGUAGE_FI;
+</VARIABLE>
+<VARIABLE>
 <NAME>ENCA_LANGUAGE_HR</NAME>
 extern const EncaLanguageInfo ENCA_LANGUAGE_HR;
 </VARIABLE>

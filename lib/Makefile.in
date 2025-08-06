@@ -140,9 +140,10 @@ LTLIBRARIES = $(lib_LTLIBRARIES)
 libenca_la_LIBADD =
 am_libenca_la_OBJECTS = common.lo ctype.lo enca.lo encnames.lo \
 	filters.lo guess.lo lang.lo lang_be.lo lang_bg.lo lang_cs.lo \
-	lang_et.lo lang_hr.lo lang_hu.lo lang_lt.lo lang_lv.lo \
-	lang_pl.lo lang_ru.lo lang_sk.lo lang_sl.lo lang_uk.lo \
-	lang_zh.lo multibyte.lo pair.lo unicodemap.lo utf8_double.lo
+	lang_et.lo lang_fi.lo lang_hr.lo lang_hu.lo lang_lt.lo \
+	lang_lv.lo lang_pl.lo lang_ru.lo lang_sk.lo lang_sl.lo \
+	lang_uk.lo lang_zh.lo multibyte.lo pair.lo unicodemap.lo \
+	utf8_double.lo
 libenca_la_OBJECTS = $(am_libenca_la_OBJECTS)
 AM_V_lt = $(am__v_lt_@AM_V@)
 am__v_lt_ = $(am__v_lt_@AM_DEFAULT_V@)
@@ -171,14 +172,14 @@ am__depfiles_remade = ./$(DEPDIR)/common.Plo ./$(DEPDIR)/ctype.Plo \
 	./$(DEPDIR)/filters.Plo ./$(DEPDIR)/guess.Plo \
 	./$(DEPDIR)/lang.Plo ./$(DEPDIR)/lang_be.Plo \
 	./$(DEPDIR)/lang_bg.Plo ./$(DEPDIR)/lang_cs.Plo \
-	./$(DEPDIR)/lang_et.Plo ./$(DEPDIR)/lang_hr.Plo \
-	./$(DEPDIR)/lang_hu.Plo ./$(DEPDIR)/lang_lt.Plo \
-	./$(DEPDIR)/lang_lv.Plo ./$(DEPDIR)/lang_pl.Plo \
-	./$(DEPDIR)/lang_ru.Plo ./$(DEPDIR)/lang_sk.Plo \
-	./$(DEPDIR)/lang_sl.Plo ./$(DEPDIR)/lang_uk.Plo \
-	./$(DEPDIR)/lang_zh.Plo ./$(DEPDIR)/multibyte.Plo \
-	./$(DEPDIR)/pair.Plo ./$(DEPDIR)/unicodemap.Plo \
-	./$(DEPDIR)/utf8_double.Plo
+	./$(DEPDIR)/lang_et.Plo ./$(DEPDIR)/lang_fi.Plo \
+	./$(DEPDIR)/lang_hr.Plo ./$(DEPDIR)/lang_hu.Plo \
+	./$(DEPDIR)/lang_lt.Plo ./$(DEPDIR)/lang_lv.Plo \
+	./$(DEPDIR)/lang_pl.Plo ./$(DEPDIR)/lang_ru.Plo \
+	./$(DEPDIR)/lang_sk.Plo ./$(DEPDIR)/lang_sl.Plo \
+	./$(DEPDIR)/lang_uk.Plo ./$(DEPDIR)/lang_zh.Plo \
+	./$(DEPDIR)/multibyte.Plo ./$(DEPDIR)/pair.Plo \
+	./$(DEPDIR)/unicodemap.Plo ./$(DEPDIR)/utf8_double.Plo
 am__mv = mv -f
 COMPILE = $(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) \
 	$(CPPFLAGS) $(AM_CFLAGS) $(CFLAGS)
@@ -397,6 +398,7 @@ libenca_la_SOURCES = \
   lang_bg.c \
   lang_cs.c \
   lang_et.c \
+  lang_fi.c \
   lang_hr.c \
   lang_hu.c \
   lang_lt.c \
@@ -504,6 +506,7 @@ distclean-compile:
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_bg.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_cs.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_et.Plo@am__quote@ # am--include-marker
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_fi.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_hr.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_hu.Plo@am__quote@ # am--include-marker
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/lang_lt.Plo@am__quote@ # am--include-marker
@@ -711,6 +714,7 @@ distclean: distclean-am
 	-rm -f ./$(DEPDIR)/lang_bg.Plo
 	-rm -f ./$(DEPDIR)/lang_cs.Plo
 	-rm -f ./$(DEPDIR)/lang_et.Plo
+	-rm -f ./$(DEPDIR)/lang_fi.Plo
 	-rm -f ./$(DEPDIR)/lang_hr.Plo
 	-rm -f ./$(DEPDIR)/lang_hu.Plo
 	-rm -f ./$(DEPDIR)/lang_lt.Plo
@@ -781,6 +785,7 @@ maintainer-clean: maintainer-clean-am
 	-rm -f ./$(DEPDIR)/lang_bg.Plo
 	-rm -f ./$(DEPDIR)/lang_cs.Plo
 	-rm -f ./$(DEPDIR)/lang_et.Plo
+	-rm -f ./$(DEPDIR)/lang_fi.Plo
 	-rm -f ./$(DEPDIR)/lang_hr.Plo
 	-rm -f ./$(DEPDIR)/lang_hu.Plo
 	-rm -f ./$(DEPDIR)/lang_lt.Plo

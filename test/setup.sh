@@ -1,10 +1,11 @@
 ENCA=$top_builddir/src/enca
-TEST_LANGUAGES="be bg cs et hr hu lt lv pl ru sk sl uk zh"
+TEST_LANGUAGES="be bg cs et fi hr hu lt lv pl ru sk sl uk zh"
 ALL_TEST_LANGUAGES="$TEST_LANGUAGES none"
 TEST_PAIR_be="koi8uni cp1251"
 TEST_PAIR_bg="ibm855 cp1251"
 TEST_PAIR_cs="keybcs2 ibm852"
 TEST_PAIR_et="iso885913 baltic"
+TEST_PAIR_fi="iso88594 cp1257"
 TEST_PAIR_hr="ibm852 cp1250"
 TEST_PAIR_hu="cp1250 ibm852"
 TEST_PAIR_lt="iso88594 baltic"

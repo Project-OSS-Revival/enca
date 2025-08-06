@@ -59,6 +59,7 @@ main(int argc, char *argv[])
   prl(&ENCA_LANGUAGE_BG, "1251mac");
   prl(&ENCA_LANGUAGE_CS, "isowin 852kam");
   prl(&ENCA_LANGUAGE_ET, "");
+  prl(&ENCA_LANGUAGE_FI, "");
   prl(&ENCA_LANGUAGE_HR, "isowin");
   prl(&ENCA_LANGUAGE_HU, "isocork isowin[XXX]");
   prl(&ENCA_LANGUAGE_LT, "winbalt lat4balt iso13win[XXX]");

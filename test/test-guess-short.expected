@@ -31,6 +31,9 @@ et-s.iso88594: ISO-8859-4
 et-s.iso88594.qp: ISO-8859-4/qp
 et-s.macce: macce
 et-s.utf8: UTF-8/CRLF
+fi-s.cp1257: CP1257/LF
+fi-s.iso88594: ISO-8859-4
+fi-s.utf8: UTF-8
 hr-s.cork: CORK/LF
 hr-s.cp1250: CP1250
 hr-s.ibm852: IBM852

@@ -19,7 +19,15 @@ pod2usage("$0: No files given.")  if ((@ARGV == 0) && (-t STDIN));
 
 if (!defined $ARGV[0]) {
   while (<STDIN>) {
-    ($char_hex[$n], $char[$n], $count[$n]) = split /\s+/, $_, 3;
+    chomp;
+    # Handle special case of space character (0x20   count)
+    if (/^(0x20)\s+(\d+)$/) {
+      $char_hex[$n] = $1;
+      $char[$n] = ' ';
+      $count[$n] = $2;
+    } else {
+      ($char_hex[$n], $char[$n], $count[$n]) = split /\s+/, $_, 3;
+    }
 
     if ($max < $count[$n]) {
       $max = $count[$n];
@@ -49,7 +57,15 @@ else {
 
   my $sum2 = 0;
   while (<STDIN>) {
-    ($char_hex[$n], $char[$n], $count[$n]) = split /\s+/, $_, 3;
+    chomp;
+    # Handle special case of space character (0x20   count)
+    if (/^(0x20)\s+(\d+)$/) {
+      $char_hex[$n] = $1;
+      $char[$n] = ' ';
+      $count[$n] = $2;
+    } else {
+      ($char_hex[$n], $char[$n], $count[$n]) = split /\s+/, $_, 3;
+    }
 
     $sum2 += $count[$n];
     $n++;

@@ -99,6 +99,9 @@ Please see TODO for list of things that should be fixed and features to
 be implemented and their priority and also for list of things that
 definitely shouldn't be implemented.
 
+- For instructions on adding a new encoding or language, see [DEVELOP.md](DEVELOP.md).
+- For a comprehensive, step-by-step guide to adding a new language (example: Finnish), see [ENCA-ADD-LANGUAGE-GUIDE.md](ENCA-ADD-LANGUAGE-GUIDE.md).
+
 The file DEVELOP.md describes what needs to be done to add a new
 encoding or language to Enca.
 

@@ -21,6 +21,7 @@ libenca_la_SOURCES = \
   lang_bg.c \
   lang_cs.c \
   lang_et.c \
+  lang_fi.c \
   lang_hr.c \
   lang_hu.c \
   lang_lt.c \

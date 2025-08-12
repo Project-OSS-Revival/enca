@@ -483,6 +483,7 @@ extern const EncaLanguageInfo ENCA_LANGUAGE_BE;
 extern const EncaLanguageInfo ENCA_LANGUAGE_BG;
 extern const EncaLanguageInfo ENCA_LANGUAGE_CS;
 extern const EncaLanguageInfo ENCA_LANGUAGE_ET;
+extern const EncaLanguageInfo ENCA_LANGUAGE_FI;
 extern const EncaLanguageInfo ENCA_LANGUAGE_HR;
 extern const EncaLanguageInfo ENCA_LANGUAGE_HU;
 extern const EncaLanguageInfo ENCA_LANGUAGE_LT;

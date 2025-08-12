@@ -62,6 +62,8 @@ Specifically, for multibyte encodings:
 
 # How to add a new language
 
+* For a comprehensive, step-by-step guide to adding a new language, see [ENCA-ADD-LANGUAGE-GUIDE.md](ENCA-ADD-LANGUAGE-GUIDE.md).
+
 * Create a new language file:
     * Create new `lib/lang_....c` files by copying some existing (use locale
       code for names)
@@ -70,7 +72,7 @@ Specifically, for multibyte encodings:
       existing languages in `data/*` and read `data/README`.  
 * `lib/internal.h`:
     * Add new `ENCA_LANGUAGE_....`
-* `src/lang.c`:
+* `lib/lang.c`:
     * Add a new `LANGUAGE_LIST[]` entry pointing to the `ENCA_LANGUAGE_....`
 
 

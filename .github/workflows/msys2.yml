@@ -17,7 +17,7 @@ jobs:
         shell: pwsh  
         run: | 
             git config --global --add core.autocrlf false
-      - uses: actions/checkout@v4      
+      - uses: actions/checkout@v5      
       - name: Configure build
         run: ./configure --disable-shared
       - name: Build

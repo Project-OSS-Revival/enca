@@ -142,6 +142,7 @@ struct _Options {
   EncaEncoding target_enc; /* Target encoding for conversion. */
   char *target_enc_str; /* How user specified the target encoding. */
   int prefix_filename; /* Do prepend filename: before results? */
+  int mixed_encodings; /* Handle files with mixed encodings? */
 };
 
 /* Enca options. */

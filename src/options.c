@@ -61,6 +61,7 @@ static const Options DEFAULTS = {
   { ENCA_CS_UNKNOWN, 0 }, /* target_enc */
   NULL, /* target_enc_str */
   -1, /* prefix_filename */
+  0, /* mixed_encodings */
 };
 
 extern const char *const COPYING_text[];
@@ -209,7 +210,7 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
 {
   /* Short command line options. */
   static const char *short_options =
-    "cC:deE:fgGhil:L:mn:pPrsvVx:";
+    "cC:deE:fgGhil:L:mn:pPrsvVx:M";
 
   /* Long `GNU style' command line options {{{. */
   static const struct option long_options[] = {
@@ -227,6 +228,7 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
     { "license", no_argument, NULL, 'G' },
     { "list", required_argument, NULL, 'l' },
     { "mime-name", no_argument, NULL, 'm' },
+    { "mixed-encodings", no_argument, NULL, 'M' },
     { "name", required_argument, NULL, 'n' },
     { "no-filename", no_argument, NULL, 'P' },
     { "rfc1345-name", no_argument, NULL, 'r' },
@@ -323,6 +325,10 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
 
       case 'L': /* Language. */
       options.language = optarg;
+      break;
+
+      case 'M': /* Mixed encodings mode. */
+      options.mixed_encodings = 1;
       break;
 
       case 'C': /* Add converters to converter list. */

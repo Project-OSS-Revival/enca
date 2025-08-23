@@ -20,6 +20,7 @@ Output type selectors:
 Guessing parameters:
  -L, --language=LANG     Set language of FILEs; obligatory, when cannot be
                          determined from locale settings
+ -M, --mixed-encodings   Handle files with mixed encodings (chunk-based detection)
 
 Conversion parameters:
  -E, --external-converter-program=PATH

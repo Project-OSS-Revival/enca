@@ -22,6 +22,8 @@
 /* Local prototypes. */
 static int  process_file        (EncaAnalyser an,
                                  const char *fname);
+static int  process_mixed_file  (EncaAnalyser an,
+                                 const char *fname);
 static void dwim_libenca_options(EncaAnalyser an,
                                  const File *file);
 static int print_results       (const char *fname,
@@ -135,6 +137,13 @@ process_file(EncaAnalyser an,
   }
   if (!ot_is_convert)
     file_close(file);
+
+  /* Check if mixed encoding processing is requested */
+  if (options.mixed_encodings) {
+    file_close(file);
+    file_free(file);
+    return process_mixed_file(an, fname);
+  }
 
   /* Guess encoding. */
   dwim_libenca_options(an, file);
@@ -343,6 +352,187 @@ double_utf8_chk(EncaAnalyser an,
 
   putchar('\n');
   enca_free(candidates);
+}
+
+/**
+ * Structure to hold information about a detected encoding segment
+ */
+typedef struct {
+  size_t start;          /* Start position in file */
+  size_t length;         /* Length of this segment */
+  EncaEncoding encoding; /* Detected encoding for this segment */
+} EncodingSegment;
+
+/**
+ * Process a file with potentially mixed encodings by analyzing it in chunks
+ * and handling conversions segment by segment.
+ */
+static int
+process_mixed_file(EncaAnalyser an, const char *fname)
+{
+  static Buffer *buffer = NULL;
+  static int utf8 = ENCA_CS_UNKNOWN;
+  FILE *infile = NULL;
+  FILE *outfile = NULL;
+  char *temp_filename = NULL;
+  int ot_is_convert = (options.output_type == OTYPE_CONVERT);
+  int res = ERR_OK;
+  
+  const size_t CHUNK_SIZE = 1024; /* Process file in 1KB chunks */
+  
+  EncodingSegment *segments = NULL;
+  size_t segment_count = 0;
+  size_t segment_capacity = 8;
+  
+  unsigned char *chunk_buffer = NULL;
+  size_t file_pos = 0;
+
+  if (buffer == NULL)
+    buffer = buffer_new(buffer_size);
+
+  if (!enca_charset_is_known(utf8)) {
+    utf8 = enca_name_to_charset("utf8");
+    assert(enca_charset_is_known(utf8));
+  }
+
+  /* Open input file */
+  if (fname == NULL) {
+    infile = stdin;
+  } else {
+    infile = fopen(fname, "rb");
+    if (infile == NULL) {
+      fprintf(stderr, "%s: Cannot open file %s: %s\n", 
+              program_name, fname, strerror(errno));
+      return EXIT_TROUBLE;
+    }
+  }
+
+  /* Allocate segment array and chunk buffer */
+  segments = NEW(EncodingSegment, segment_capacity);
+  chunk_buffer = NEW(unsigned char, CHUNK_SIZE);
+  
+  if (!segments || !chunk_buffer) {
+    fprintf(stderr, "%s: Memory allocation failed\n", program_name);
+    res = EXIT_TROUBLE;
+    goto cleanup;
+  }
+
+  if (options.verbosity_level > 1) {
+    fprintf(stderr, "Processing file with mixed encodings in %zu-byte chunks\n", CHUNK_SIZE);
+  }
+
+  /* Process file chunk by chunk */
+  while (!feof(infile)) {
+    size_t bytes_read;
+    EncaEncoding detected;
+    
+    /* Read chunk */
+    bytes_read = fread(chunk_buffer, 1, CHUNK_SIZE, infile);
+    if (bytes_read == 0) break;
+    
+    /* Detect encoding for this chunk */
+    detected = enca_analyse_const(an, chunk_buffer, bytes_read);
+
+    /* Expand segments array if needed */
+    if (segment_count >= segment_capacity) {
+      segment_capacity *= 2;
+      segments = realloc(segments, segment_capacity * sizeof(EncodingSegment));
+      if (!segments) {
+        fprintf(stderr, "%s: Memory reallocation failed\n", program_name);
+        res = EXIT_TROUBLE;
+        goto cleanup;
+      }
+    }
+
+    /* Add segment or merge with previous if same encoding */
+    if (segment_count > 0 && 
+        segments[segment_count - 1].encoding.charset == detected.charset &&
+        segments[segment_count - 1].encoding.surface == detected.surface) {
+      /* Merge with previous segment */
+      segments[segment_count - 1].length += bytes_read;
+    } else {
+      /* Create new segment */
+      segments[segment_count].start = file_pos;
+      segments[segment_count].length = bytes_read;
+      segments[segment_count].encoding = detected;
+      segment_count++;
+    }
+
+    file_pos += bytes_read;
+  }
+
+  /* Print detection results */
+  if (!ot_is_convert) {
+    if (options.prefix_filename && fname != NULL) {
+      printf("%s: ", fname);
+    }
+    
+    if (segment_count == 0) {
+      printf("No data processed\n");
+    } else if (segment_count == 1) {
+      /* Only one encoding found */
+      if (enca_charset_is_known(segments[0].encoding.charset)) {
+        print_results(fname, an, segments[0].encoding, enca_errno(an));
+      } else {
+        printf("Single segment with unrecognized encoding\n");
+      }
+    } else {
+      /* Multiple encodings found */
+      printf("Mixed encodings detected (%zu segments):\n", segment_count);
+      for (size_t i = 0; i < segment_count; i++) {
+        printf("  Segment %zu (offset %zu, %zu bytes): ", 
+               i + 1, segments[i].start, segments[i].length);
+        
+        if (enca_charset_is_known(segments[i].encoding.charset)) {
+          const char *enc_name = enca_charset_name(segments[i].encoding.charset, 
+                                                  ENCA_NAME_STYLE_HUMAN);
+          if (enc_name != NULL) {
+            printf("%s", enc_name);
+          } else {
+            printf("Known but unnamed charset %d", segments[i].encoding.charset);
+          }
+          
+          if (segments[i].encoding.surface) {
+            const char *surface_name = enca_get_surface_name(segments[i].encoding.surface, 
+                                                            ENCA_NAME_STYLE_HUMAN);
+            if (surface_name) {
+              printf(" (%s)", surface_name);
+            }
+          }
+        } else {
+          printf("Unrecognized encoding");
+        }
+        printf("\n");
+      }
+    }
+  }
+
+  /* Handle conversion if requested */
+  if (ot_is_convert && enca_charset_is_known(options.target_enc.charset)) {
+    fprintf(stderr, "Mixed encoding conversion not fully implemented yet.\n");
+    fprintf(stderr, "Would convert %zu segments to %s\n", 
+            segment_count, options.target_enc_str);
+  }
+
+cleanup:
+  if (infile != NULL && infile != stdin) {
+    fclose(infile);
+  }
+  if (outfile != NULL && outfile != stdout) {
+    fclose(outfile);
+  }
+  if (temp_filename != NULL) {
+    unlink(temp_filename); /* Remove temp file on error */
+    enca_free(temp_filename);
+  }
+  if (segments != NULL) {
+    enca_free(segments);
+  }
+  if (chunk_buffer != NULL) {
+    enca_free(chunk_buffer);
+  }
+
+  return res;
 }
 
 /* vim: ts=2

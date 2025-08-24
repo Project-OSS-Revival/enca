@@ -19,6 +19,10 @@
 #include <math.h>
 #include "common.h"
 
+#ifdef HAVE_GOOD_ICONV
+#include <iconv.h>
+#endif
+
 /* Local prototypes. */
 static int  process_file        (EncaAnalyser an,
                                  const char *fname);
@@ -509,9 +513,141 @@ process_mixed_file(EncaAnalyser an, const char *fname)
 
   /* Handle conversion if requested */
   if (ot_is_convert && enca_charset_is_known(options.target_enc.charset)) {
-    fprintf(stderr, "Mixed encoding conversion not fully implemented yet.\n");
+#ifdef HAVE_GOOD_ICONV
+    if (options.verbosity_level) {
+      fprintf(stderr, "%s: converting mixed encoding file `%s' (%zu segments) to %s\n",
+              program_name, fname ? fname : "stdin", 
+              segment_count, options.target_enc_str);
+    }
+    
+    /* Create output file for conversion */
+    FILE *outfile = NULL;
+    char *out_filename = NULL;
+    
+    if (fname) {
+      /* Create temporary file for output */
+      out_filename = enca_malloc(strlen(fname) + 10);
+      sprintf(out_filename, "%s.encatmp", fname);
+      outfile = fopen(out_filename, "wb");
+      if (!outfile) {
+        fprintf(stderr, "%s: cannot create temporary file %s\n", 
+                program_name, out_filename);
+        enca_free(out_filename);
+        goto cleanup;
+      }
+    } else {
+      outfile = stdout;
+    }
+    
+    /* Read entire file into buffer for conversion */
+    fseek(infile, 0, SEEK_END);
+    long file_size = ftell(infile);
+    fseek(infile, 0, SEEK_SET);
+    
+    if (file_size < 0) {
+      fprintf(stderr, "%s: cannot determine file size\n", program_name);
+      if (fname) enca_free(out_filename);
+      goto cleanup;
+    }
+    
+    char *file_data = enca_malloc(file_size + 1);
+    size_t total_read = fread(file_data, 1, file_size, infile);
+    
+    if (options.verbosity_level > 2) {
+      fprintf(stderr, "Read %zu bytes from file for conversion\n", total_read);
+    }
+    
+    /* Convert each segment */
+    for (size_t i = 0; i < segment_count; i++) {
+      if (options.verbosity_level > 1) {
+        fprintf(stderr, "    converting segment %zu: %s -> %s (%zu bytes)\n", 
+                i + 1, 
+                enca_charset_name(segments[i].encoding.charset, ENCA_NAME_STYLE_HUMAN),
+                options.target_enc_str,
+                segments[i].length);
+      }
+      
+      /* Skip if already target encoding */
+      if (segments[i].encoding.charset == options.target_enc.charset &&
+          segments[i].encoding.surface == options.target_enc.surface) {
+        fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+        if (options.verbosity_level > 2) {
+          fprintf(stderr, "      segment already in target encoding, copied unchanged\n");
+        }
+        continue;
+      }
+      
+      /* Convert segment using iconv if possible */
+      if (enca_charset_is_known(segments[i].encoding.charset)) {
+        const char *from_name = enca_charset_name(segments[i].encoding.charset, ENCA_NAME_STYLE_ICONV);
+        const char *to_name = enca_charset_name(options.target_enc.charset, ENCA_NAME_STYLE_ICONV);
+        
+        if (from_name && to_name) {
+          iconv_t cd = iconv_open(to_name, from_name);
+          if (cd != (iconv_t)-1) {
+            char *inbuf = (char *)(file_data + segments[i].start);
+            size_t inbytesleft = segments[i].length;
+            
+            /* Allocate output buffer (generous size) */
+            size_t outbuf_size = segments[i].length * 4 + 1024;
+            char *outbuf_start = enca_malloc(outbuf_size);
+            char *outbuf = outbuf_start;
+            size_t outbytesleft = outbuf_size;
+            
+            size_t result = iconv(cd, &inbuf, &inbytesleft, &outbuf, &outbytesleft);
+            if (result != (size_t)-1 || inbytesleft == 0) {
+              size_t converted_bytes = outbuf_size - outbytesleft;
+              fwrite(outbuf_start, 1, converted_bytes, outfile);
+              
+              if (options.verbosity_level > 2) {
+                fprintf(stderr, "      converted %zu bytes -> %zu bytes\n", 
+                        segments[i].length, converted_bytes);
+              }
+            } else {
+              fprintf(stderr, "%s: conversion failed for segment %zu, copying unchanged\n", 
+                      program_name, i + 1);
+              fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+            }
+            
+            enca_free(outbuf_start);
+            iconv_close(cd);
+          } else {
+            fprintf(stderr, "%s: cannot open converter from %s to %s for segment %zu\n", 
+                    program_name, from_name, to_name, i + 1);
+            fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+          }
+        } else {
+          fprintf(stderr, "%s: no iconv name for charset in segment %zu\n", program_name, i + 1);
+          fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+        }
+      } else {
+        /* Unknown encoding, copy as-is */
+        fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+      }
+    }
+    
+    /* Close and replace original file if successful */
+    if (fname) {
+      fclose(outfile);
+      if (rename(out_filename, fname) != 0) {
+        fprintf(stderr, "%s: cannot replace original file %s\n", 
+                program_name, fname);
+        unlink(out_filename);
+      } else {
+        if (options.verbosity_level) {
+          fprintf(stderr, "%s: successfully converted `%s'\n", 
+                  program_name, fname);
+        }
+      }
+      enca_free(out_filename);
+    }
+    
+    enca_free(file_data);
+#else
+    fprintf(stderr, "%s: mixed encoding conversion requires iconv support\n", program_name);
     fprintf(stderr, "Would convert %zu segments to %s\n", 
             segment_count, options.target_enc_str);
+#endif
   }
 
 cleanup:

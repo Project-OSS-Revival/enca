@@ -62,6 +62,9 @@ static const Options DEFAULTS = {
   NULL, /* target_enc_str */
   -1, /* prefix_filename */
   0, /* mixed_encodings */
+  1024, /* mixed_buffer_size */
+  0, /* mixed_ignore_errors */
+  0, /* mixed_use_predominant */
 };
 
 extern const char *const COPYING_text[];
@@ -210,7 +213,7 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
 {
   /* Short command line options. */
   static const char *short_options =
-    "cC:deE:fgGhil:L:mn:pPrsvVx:M";
+    "cC:deE:fgGhil:L:mn:pPrsvVx:MB:I";
 
   /* Long `GNU style' command line options {{{. */
   static const struct option long_options[] = {
@@ -229,6 +232,8 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
     { "list", required_argument, NULL, 'l' },
     { "mime-name", no_argument, NULL, 'm' },
     { "mixed-encodings", no_argument, NULL, 'M' },
+    { "mixed-buffer-size", required_argument, NULL, 'B' },
+    { "mixed-ignore-errors", no_argument, NULL, 'I' },
     { "name", required_argument, NULL, 'n' },
     { "no-filename", no_argument, NULL, 'P' },
     { "rfc1345-name", no_argument, NULL, 'r' },
@@ -329,6 +334,23 @@ interpret_opt(int argc, char *argv[], int cmdl_argc)
 
       case 'M': /* Mixed encodings mode. */
       options.mixed_encodings = 1;
+      break;
+
+      case 'B': /* Mixed encoding buffer size. */
+      {
+        char *endptr;
+        long size = strtol(optarg, &endptr, 10);
+        if (*endptr != '\0' || size <= 0 || size > 1048576) {
+          fprintf(stderr, "%s: invalid buffer size `%s' (must be 1-1048576)\n",
+                  program_name, optarg);
+          exit(EXIT_FAILURE);
+        }
+        options.mixed_buffer_size = (int)size;
+      }
+      break;
+
+      case 'I': /* Mixed encoding ignore errors. */
+      options.mixed_ignore_errors = 1;
       break;
 
       case 'C': /* Add converters to converter list. */

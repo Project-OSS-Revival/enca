@@ -48,6 +48,17 @@ and find out it's KOI8\-R (for example).
 Be warned, currently there are not many supported languages (see section
 \fBLANGUAGES\fR).
 .PP
+For files containing mixed encodings (common with concatenated documents,
+email archives, or multi-source data files), use the mixed encoding mode:
+.XA "enca \-L pl \-M mixed_file.txt"
+This will detect and report all encoding segments within the file.
+To convert all segments to a uniform encoding:
+.XA "enca \-L pl \-M \-x utf8 mixed_file.txt"
+For finer control over segment detection:
+.XA "enca \-L pl \-M \-B 256 \-I \-x utf8 mixed_file.txt"
+This uses 256-byte chunks for detection and ignores conversion errors
+for problematic segments.
+.PP
 Another warning concerns the fact several Enca's features, namely its
 charset conversion capabilities, strongly depend on what other tools
 are installed on your system (see section \fBCONVERSION)\fR\-\-run
@@ -88,6 +99,14 @@ piece of text/data.  In case of multipart files (e.g. mailboxes), you have to
 use some tool knowing the structure to extract the individual parts first.
 It's the cost of ability to detect encodings of any damaged, incomplete or
 otherwise incorrect files.
+.PP
+However, Enca provides a mixed encoding mode (\fB\-M\fR) that can handle
+files containing segments with different character encodings.
+This mode analyzes files in configurable chunks and can detect multiple
+encodings within a single file, making it useful for concatenated documents,
+email archives, or files created by combining content from multiple sources.
+When used with conversion, each segment is converted individually,
+resulting in a file with uniform encoding throughout.
 .
 .
 .SH "OPTIONS"
@@ -232,6 +251,46 @@ to get list of supported languages.
 When you don't specify any language Enca tries to guess your language from
 locale settings and assumes input files use this language.
 See section \fBLANGUAGES\fR for details.
+.TP
+\fB\-M\fR, \fB\-\-mixed\-encodings\fR
+Enables mixed encoding detection and handling mode.
+Instead of detecting a single predominant encoding for the entire file,
+Enca will analyze the file in chunks and detect different encodings
+in different segments of the file.
+This is useful for files that contain text from multiple sources
+with different character encodings, such as concatenated documents,
+email archives, or data files with mixed content.
+.sp
+When this option is used, Enca will report all detected encoding segments
+with their byte offsets and lengths. If used with conversion (\fB\-x\fR),
+each segment will be converted individually from its detected encoding
+to the target encoding.
+.sp
+The granularity of detection can be controlled with \fB\-B\fR option.
+.TP
+\fB\-B\fR, \fB\-\-mixed\-buffer\-size=\fR\fISIZE\fR
+Sets the buffer size in bytes for mixed encoding detection when
+\fB\-M\fR option is used.
+.sp
+Default buffer size is 1024 bytes. Smaller values (e.g., 256) provide
+finer granularity and may detect more encoding segments, while larger
+values (e.g., 4096) provide coarser granularity and better performance.
+Valid range is 1\-1048576 bytes.
+.sp
+This option has no effect unless \fB\-M\fR is also specified.
+.TP
+\fB\-I\fR, \fB\-\-mixed\-ignore\-errors\fR
+Enables graceful error handling in mixed encoding mode.
+When conversion fails for a particular segment due to unknown encoding
+or conversion errors, the problematic segment will be handled using
+the predominant encoding detected in the file, or copied unchanged
+if no suitable fallback is available.
+.sp
+This option is particularly useful when processing files with
+segments of unknown or corrupted encodings, allowing the conversion
+to continue rather than failing completely.
+.sp
+This option has no effect unless \fB\-M\fR is also specified.
 .PP
 .
 .SS Conversion parameters
@@ -672,7 +731,6 @@ Belarusian @CP1251 IBM866 ISO\-8859\-5 KOI8\-UNI maccyr IBM855
 Bulgarian  @CP1251 ISO\-8859\-5 IBM855 maccyr ECMA\-113
 Czech      @ISO\-8859\-2 CP1250 IBM852 KEYBCS2 macce KOI\-8_CS_2 CORK
 Estonian   @ISO\-8859\-4 CP1257 IBM775 ISO\-8859\-13 macce baltic
-Finnish    @ISO\-8859\-4 CP1257
 Croatian   @CP1250 ISO\-8859\-2 IBM852 macce CORK
 Hungarian  @ISO\-8859\-2 CP1250 IBM852 macce CORK
 Lithuanian @CP1257 ISO\-8859\-4 IBM775 ISO\-8859\-13 macce baltic
@@ -697,7 +755,6 @@ Belarusian   @be
 Bulgarian    @bg
 Czech        @cs
 Estonian     @et
-Finnish      @fi
 Croatian     @hr
 Hungarian    @hu
 Lithuanian   @lt

@@ -20,6 +20,11 @@ Output type selectors:
 Guessing parameters:
  -L, --language=LANG     Set language of FILEs; obligatory, when cannot be
                          determined from locale settings
+ -M, --mixed-encodings   Handle files with mixed encodings (chunk-based detection)
+ -B, --mixed-buffer-size=SIZE  Set buffer size for mixed encoding detection
+                         (default: 1024 bytes, range: 1-1048576)
+ -I, --mixed-ignore-errors     Ignore conversion errors in mixed mode, copy
+                         problematic segments unchanged
 
 Conversion parameters:
  -E, --external-converter-program=PATH

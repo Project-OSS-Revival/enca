@@ -19,8 +19,14 @@
 #include <math.h>
 #include "common.h"
 
+#ifdef HAVE_GOOD_ICONV
+#include <iconv.h>
+#endif
+
 /* Local prototypes. */
 static int  process_file        (EncaAnalyser an,
+                                 const char *fname);
+static int  process_mixed_file  (EncaAnalyser an,
                                  const char *fname);
 static void dwim_libenca_options(EncaAnalyser an,
                                  const File *file);
@@ -135,6 +141,13 @@ process_file(EncaAnalyser an,
   }
   if (!ot_is_convert)
     file_close(file);
+
+  /* Check if mixed encoding processing is requested */
+  if (options.mixed_encodings) {
+    file_close(file);
+    file_free(file);
+    return process_mixed_file(an, fname);
+  }
 
   /* Guess encoding. */
   dwim_libenca_options(an, file);
@@ -343,6 +356,382 @@ double_utf8_chk(EncaAnalyser an,
 
   putchar('\n');
   enca_free(candidates);
+}
+
+/**
+ * Structure to hold information about a detected encoding segment
+ */
+typedef struct {
+  size_t start;          /* Start position in file */
+  size_t length;         /* Length of this segment */
+  EncaEncoding encoding; /* Detected encoding for this segment */
+} EncodingSegment;
+
+/**
+ * Process a file with potentially mixed encodings by analyzing it in chunks
+ * and handling conversions segment by segment.
+ */
+static int
+process_mixed_file(EncaAnalyser an, const char *fname)
+{
+  static Buffer *buffer = NULL;
+  static int utf8 = ENCA_CS_UNKNOWN;
+  FILE *infile = NULL;
+  FILE *outfile = NULL;
+  char *temp_filename = NULL;
+  int ot_is_convert = (options.output_type == OTYPE_CONVERT);
+  int res = ERR_OK;
+  
+  const size_t CHUNK_SIZE = options.mixed_buffer_size; /* Use user-configurable buffer size */
+  
+  EncodingSegment *segments = NULL;
+  size_t segment_count = 0;
+  size_t segment_capacity = 8;
+  
+  unsigned char *chunk_buffer = NULL;
+  size_t file_pos = 0;
+
+  /* Statistics for predominant encoding detection */
+  EncaEncoding predominant_encoding = { ENCA_CS_UNKNOWN, 0 };
+  size_t predominant_bytes = 0;
+
+  if (buffer == NULL)
+    buffer = buffer_new(buffer_size);
+
+  if (!enca_charset_is_known(utf8)) {
+    utf8 = enca_name_to_charset("utf8");
+    assert(enca_charset_is_known(utf8));
+  }
+
+  /* Open input file */
+  if (fname == NULL) {
+    infile = stdin;
+  } else {
+    infile = fopen(fname, "rb");
+    if (infile == NULL) {
+      fprintf(stderr, "%s: Cannot open file %s: %s\n", 
+              program_name, fname, strerror(errno));
+      return EXIT_TROUBLE;
+    }
+  }
+
+  /* Allocate segment array and chunk buffer */
+  segments = NEW(EncodingSegment, segment_capacity);
+  chunk_buffer = NEW(unsigned char, CHUNK_SIZE);
+  
+  if (!segments || !chunk_buffer) {
+    fprintf(stderr, "%s: Memory allocation failed\n", program_name);
+    res = EXIT_TROUBLE;
+    goto cleanup;
+  }
+
+  if (options.verbosity_level > 1) {
+    fprintf(stderr, "Processing file with mixed encodings in %zu-byte chunks\n", CHUNK_SIZE);
+  }
+
+  /* Process file chunk by chunk */
+  while (!feof(infile)) {
+    size_t bytes_read;
+    EncaEncoding detected;
+    
+    /* Read chunk */
+    bytes_read = fread(chunk_buffer, 1, CHUNK_SIZE, infile);
+    if (bytes_read == 0) break;
+    
+    /* Detect encoding for this chunk */
+    detected = enca_analyse_const(an, chunk_buffer, bytes_read);
+
+    /* Expand segments array if needed */
+    if (segment_count >= segment_capacity) {
+      segment_capacity *= 2;
+      segments = realloc(segments, segment_capacity * sizeof(EncodingSegment));
+      if (!segments) {
+        fprintf(stderr, "%s: Memory reallocation failed\n", program_name);
+        res = EXIT_TROUBLE;
+        goto cleanup;
+      }
+    }
+
+    /* Add segment or merge with previous if same encoding */
+    if (segment_count > 0 && 
+        segments[segment_count - 1].encoding.charset == detected.charset &&
+        segments[segment_count - 1].encoding.surface == detected.surface) {
+      /* Merge with previous segment */
+      segments[segment_count - 1].length += bytes_read;
+    } else {
+      /* Create new segment */
+      segments[segment_count].start = file_pos;
+      segments[segment_count].length = bytes_read;
+      segments[segment_count].encoding = detected;
+      segment_count++;
+    }
+    
+    /* Track predominant encoding (most bytes) */
+    if (enca_charset_is_known(detected.charset)) {
+      size_t current_total = 0;
+      
+      /* Calculate total bytes for this encoding across all segments */
+      for (size_t i = 0; i < segment_count; i++) {
+        if (segments[i].encoding.charset == detected.charset &&
+            segments[i].encoding.surface == detected.surface) {
+          current_total += segments[i].length;
+        }
+      }
+      
+      if (current_total > predominant_bytes) {
+        predominant_encoding = detected;
+        predominant_bytes = current_total;
+      }
+    }
+
+    file_pos += bytes_read;
+  }
+
+  /* Print detection results */
+  if (!ot_is_convert) {
+    if (options.prefix_filename && fname != NULL) {
+      printf("%s: ", fname);
+    }
+    
+    if (segment_count == 0) {
+      printf("No data processed\n");
+    } else if (segment_count == 1) {
+      /* Only one encoding found */
+      if (enca_charset_is_known(segments[0].encoding.charset)) {
+        print_results(fname, an, segments[0].encoding, enca_errno(an));
+      } else {
+        printf("Single segment with unrecognized encoding\n");
+      }
+    } else {
+      /* Multiple encodings found */
+      printf("Mixed encodings detected (%zu segments):\n", segment_count);
+      for (size_t i = 0; i < segment_count; i++) {
+        printf("  Segment %zu (offset %zu, %zu bytes): ", 
+               i + 1, segments[i].start, segments[i].length);
+        
+        if (enca_charset_is_known(segments[i].encoding.charset)) {
+          const char *enc_name = enca_charset_name(segments[i].encoding.charset, 
+                                                  ENCA_NAME_STYLE_HUMAN);
+          if (enc_name != NULL) {
+            printf("%s", enc_name);
+          } else {
+            printf("Known but unnamed charset %d", segments[i].encoding.charset);
+          }
+          
+          if (segments[i].encoding.surface) {
+            const char *surface_name = enca_get_surface_name(segments[i].encoding.surface, 
+                                                            ENCA_NAME_STYLE_HUMAN);
+            if (surface_name) {
+              printf(" (%s)", surface_name);
+            }
+          }
+        } else {
+          printf("Unrecognized encoding");
+        }
+        printf("\n");
+      }
+    }
+  }
+
+  /* Handle conversion if requested */
+  if (ot_is_convert && enca_charset_is_known(options.target_enc.charset)) {
+    if (options.verbosity_level) {
+      fprintf(stderr, "%s: converting mixed encoding file `%s' (%zu segments) to %s\n",
+              program_name, fname ? fname : "stdin", 
+              segment_count, options.target_enc_str);
+      
+      if (enca_charset_is_known(predominant_encoding.charset)) {
+        fprintf(stderr, "%s: predominant encoding: %s (%zu bytes)\n",
+                program_name,
+                enca_charset_name(predominant_encoding.charset, ENCA_NAME_STYLE_HUMAN),
+                predominant_bytes);
+      }
+    }
+    
+    /* Create output file for conversion */
+    FILE *outfile = NULL;
+    char *out_filename = NULL;
+    
+    if (fname) {
+      /* Create temporary file for output */
+      out_filename = enca_malloc(strlen(fname) + 10);
+      sprintf(out_filename, "%s.encatmp", fname);
+      outfile = fopen(out_filename, "wb");
+      if (!outfile) {
+        fprintf(stderr, "%s: cannot create temporary file %s\n", 
+                program_name, out_filename);
+        enca_free(out_filename);
+        goto cleanup;
+      }
+    } else {
+      outfile = stdout;
+    }
+    
+    /* Read entire file into buffer for conversion */
+    fseek(infile, 0, SEEK_END);
+    long file_size = ftell(infile);
+    fseek(infile, 0, SEEK_SET);
+    
+    if (file_size < 0) {
+      fprintf(stderr, "%s: cannot determine file size\n", program_name);
+      if (fname) enca_free(out_filename);
+      goto cleanup;
+    }
+    
+    char *file_data = enca_malloc(file_size + 1);
+    size_t total_read = fread(file_data, 1, file_size, infile);
+    
+    if (options.verbosity_level > 2) {
+      fprintf(stderr, "Read %zu bytes from file for conversion\n", total_read);
+    }
+    
+    /* Convert each segment using proper converter system */
+    for (size_t i = 0; i < segment_count; i++) {
+      if (options.verbosity_level > 1) {
+        fprintf(stderr, "    converting segment %zu: %s -> %s (%zu bytes)\n", 
+                i + 1, 
+                enca_charset_name(segments[i].encoding.charset, ENCA_NAME_STYLE_HUMAN),
+                options.target_enc_str,
+                segments[i].length);
+      }
+      
+      /* Skip if already target encoding */
+      if (segments[i].encoding.charset == options.target_enc.charset &&
+          segments[i].encoding.surface == options.target_enc.surface) {
+        fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+        if (options.verbosity_level > 2) {
+          fprintf(stderr, "      segment already in target encoding, copied unchanged\n");
+        }
+        continue;
+      }
+      
+      /* Handle unknown encodings */
+      if (!enca_charset_is_known(segments[i].encoding.charset)) {
+        if (options.mixed_ignore_errors) {
+          if (enca_charset_is_known(predominant_encoding.charset)) {
+            /* Use predominant encoding for unknown segments */
+            segments[i].encoding = predominant_encoding;
+            if (options.verbosity_level > 1) {
+              fprintf(stderr, "      unknown encoding, using predominant: %s\n",
+                      enca_charset_name(predominant_encoding.charset, ENCA_NAME_STYLE_HUMAN));
+            }
+          } else {
+            /* Copy unchanged */
+            fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+            if (options.verbosity_level > 1) {
+              fprintf(stderr, "      unknown encoding, copying unchanged\n");
+            }
+            continue;
+          }
+        } else {
+          /* Copy unchanged if not ignoring errors */
+          fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+          if (options.verbosity_level > 1) {
+            fprintf(stderr, "      unknown encoding, copying unchanged\n");
+          }
+          continue;
+        }
+      }
+      
+      /* Create temporary file for this segment */
+      char temp_segment_name[256];
+      sprintf(temp_segment_name, "/tmp/enca_segment_%zu_%d", i, getpid());
+      
+      FILE *temp_segment = fopen(temp_segment_name, "wb");
+      if (!temp_segment) {
+        fprintf(stderr, "%s: cannot create temporary segment file\n", program_name);
+        fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+        continue;
+      }
+      
+      /* Write segment data to temporary file */
+      fwrite(file_data + segments[i].start, 1, segments[i].length, temp_segment);
+      fclose(temp_segment);
+      
+      /* Use existing conversion system */
+      File *temp_file = file_new(temp_segment_name, buffer);
+      if (temp_file && file_open(temp_file, "r+b") == 0) {
+        int conv_result = convert(temp_file, segments[i].encoding);
+        
+        if (conv_result == ERR_OK) {
+          /* Read converted data back */
+          FILE *converted = fopen(temp_segment_name, "rb");
+          if (converted) {
+            char copy_buffer[4096];
+            size_t copied;
+            while ((copied = fread(copy_buffer, 1, sizeof(copy_buffer), converted)) > 0) {
+              fwrite(copy_buffer, 1, copied, outfile);
+            }
+            fclose(converted);
+            
+            if (options.verbosity_level > 2) {
+              fprintf(stderr, "      segment converted successfully\n");
+            }
+          } else {
+            fprintf(stderr, "%s: cannot read converted segment\n", program_name);
+            fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+          }
+        } else {
+          if (options.mixed_ignore_errors) {
+            if (options.verbosity_level > 1) {
+              fprintf(stderr, "      conversion failed, copying unchanged (ignore errors mode)\n");
+            }
+            fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+          } else {
+            fprintf(stderr, "%s: conversion failed for segment %zu\n", program_name, i + 1);
+            fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+          }
+        }
+        
+        file_close(temp_file);
+        file_free(temp_file);
+      } else {
+        fprintf(stderr, "%s: cannot create file object for segment conversion\n", program_name);
+        fwrite(file_data + segments[i].start, 1, segments[i].length, outfile);
+      }
+      
+      /* Clean up temporary segment file */
+      unlink(temp_segment_name);
+    }
+    
+    /* Close and replace original file if successful */
+    if (fname) {
+      fclose(outfile);
+      if (rename(out_filename, fname) != 0) {
+        fprintf(stderr, "%s: cannot replace original file %s\n", 
+                program_name, fname);
+        unlink(out_filename);
+      } else {
+        if (options.verbosity_level) {
+          fprintf(stderr, "%s: successfully converted `%s'\n", 
+                  program_name, fname);
+        }
+      }
+      enca_free(out_filename);
+    }
+    
+    enca_free(file_data);
+  }
+
+cleanup:
+  if (infile != NULL && infile != stdin) {
+    fclose(infile);
+  }
+  if (outfile != NULL && outfile != stdout) {
+    fclose(outfile);
+  }
+  if (temp_filename != NULL) {
+    unlink(temp_filename); /* Remove temp file on error */
+    enca_free(temp_filename);
+  }
+  if (segments != NULL) {
+    enca_free(segments);
+  }
+  if (chunk_buffer != NULL) {
+    enca_free(chunk_buffer);
+  }
+
+  return res;
 }
 
 /* vim: ts=2

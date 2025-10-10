@@ -158,6 +158,7 @@ CONVERTER_LIBS=
 ye_CHECK_FUNC_ICONV_USABLE
 ye_CHECK_LIB_RECODE
 
+dnl Adjust default converter list preference order: prefer librecode, then libiconv
 DEFAULT_CONVERTER_LIST="built-in"
 if test "$librecode_ok" = "yes"; then
   DEFAULT_CONVERTER_LIST="$DEFAULT_CONVERTER_LIST,librecode"

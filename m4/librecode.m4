@@ -11,7 +11,8 @@ dnl Braindead librecode depends on symbol program_name defined in main program
 dnl this makes the test braindead too.  In header file test, we have to use
 dnl a whole load of fakes, since it depends e.g. on bool and FILE defined.
 AC_ARG_WITH(librecode,
-  [  --with-librecode@<:@=DIR@:>@  look for librecode in DIR/lib and DIR/include @<:@auto@:>@],
+  [  --with-librecode@<:@=DIR@:>@  look for librecode in DIR/lib and DIR/include @<:@auto@:>@
+  --without-librecode        disable librecode],
   [case "$withval" in
     yes|auto) WANT_LIBRECODE=1 ;;
     no)  WANT_LIBRECODE=0 ;;

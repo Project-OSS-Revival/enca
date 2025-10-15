@@ -51,9 +51,7 @@ Optional features:
   configure parameters.  It is compiled in by default when found
   and considered usable.  Optionally, you can specify a DIR; libiconv
   include files will be then searched in DIR/include and the library
-  itself in DIR/lib. (The legacy `--with-iconv`/`--without-iconv` options
-  are still accepted for backward compatibility, but may be removed in a
-  future release.)
+  itself in DIR/lib.
 
 * Compilation of interface to external converter programs is controlled by
   `--enable-external`, `--disable-external`

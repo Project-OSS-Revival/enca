@@ -11,7 +11,7 @@ for l in $ALL_TEST_LANGUAGES; do
   $ENCA $srcdir/$l-s.* | sed -e "s#^$srcdir/##" >>$TESTNAME.actual || DIE=1
 done
 # Skipping the test due to missing wordexp on MSYS2
-if [[ -v MSYSTEM ]]; then
+if  [[ -n "${MSYSTEM+set}" ]]; then
   $ENCA -L none $srcdir/cs-s.utf8 || DIE=1
 else
   # Test invalid option string

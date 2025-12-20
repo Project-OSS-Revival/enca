@@ -1,7 +1,7 @@
 if test -n "$E77"; then
   exit 77
 fi
-if [[ -v MSYSTEM ]]; then
+if  [[ -n "${MSYSTEM+set}" ]]; then
   dos2unix $TESTNAME.actual
 fi
 if test -f $TESTNAME.expected; then

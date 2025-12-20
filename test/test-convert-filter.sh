@@ -24,7 +24,7 @@ for l in $TEST_LANGUAGES; do
     # The test itself.
     DIE_THIS=0
     $ENCA -L $l -x $tgt <$l-big.$src >$THISTEST.tmp || DIE_THIS=1
-    if [[ -v MSYSTEM ]]; then
+    if  [[ -n "${MSYSTEM+set}" ]]; then
       dos2unix $THISTEST.tmp
       dos2unix $l-big.$tgt
     fi

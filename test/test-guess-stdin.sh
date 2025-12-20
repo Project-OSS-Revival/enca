@@ -11,7 +11,7 @@ for l in $ALL_TEST_LANGUAGES; do
     echo "$x" >>$TESTNAME.actual
   done
 done
-if [[ -v MSYSTEM ]]; then
+if  [[ -n "${MSYSTEM+set}" ]]; then
   cp test-guess-stdin.msys2.expected test-guess-stdin.expected
 fi
 . $srcdir/finish.sh

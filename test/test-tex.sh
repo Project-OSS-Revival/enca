@@ -2,7 +2,7 @@
 # Purpose: test whether TeX decoding works.
 . $srcdir/setup.sh
 # Skipping the test on MSYS@ due to mkstemp failure.
-if [[ -v MSYSTEM ]]; then
+if  [[ -n "${MSYSTEM+set}" ]]; then
   E77=1
 else
   if $ENCA --list converters | grep '^librecode$' >/dev/null; then

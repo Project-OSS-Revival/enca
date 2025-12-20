@@ -3,7 +3,7 @@
 # FIXME: this may fail when the interface works but libiconv is broken!
 . $srcdir/setup.sh
 # Skipping the test on MSYS@ due to mkstemp failure.
-if [[ -v MSYSTEM ]]; then
+if  [[ -n "${MSYSTEM+set}" ]]; then
   E77=1
 else
   if $ENCA --list converters | grep '^iconv$' >/dev/null; then

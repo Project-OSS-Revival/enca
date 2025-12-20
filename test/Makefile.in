@@ -641,6 +641,9 @@ TEST_SAMPLES = \
   et-utf8.ibm775 \
   et-utf8.iso885913 \
   et-utf8.iso88594 \
+  fi-s.cp1257 \
+  fi-s.iso88594 \
+  fi-s.utf8 \
   hr-s.cork \
   hr-s.cp1250 \
   hr-s.ibm852 \

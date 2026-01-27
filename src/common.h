@@ -142,6 +142,10 @@ struct _Options {
   EncaEncoding target_enc; /* Target encoding for conversion. */
   char *target_enc_str; /* How user specified the target encoding. */
   int prefix_filename; /* Do prepend filename: before results? */
+  int mixed_encodings; /* Handle files with mixed encodings? */
+  int mixed_buffer_size; /* Buffer size for mixed encoding detection (bytes). */
+  int mixed_ignore_errors; /* Ignore conversion errors in mixed mode? */
+  int mixed_use_predominant; /* Use predominant encoding for unknown segments? */
 };
 
 /* Enca options. */

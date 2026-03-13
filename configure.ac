@@ -6,6 +6,8 @@ AC_INIT([Enca],[1.21],[https://github.com/nijel/enca/issues])
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR(src/enca.c)
 AC_CONFIG_MACRO_DIR([m4])
+AM_GNU_GETTEXT([external])
+AM_GNU_GETTEXT_VERSION([0.22])
 AC_CONFIG_FILES( \
   Makefile \
   enca.spec \

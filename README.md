@@ -10,6 +10,8 @@ Copyright (C) 2000-2003 David Necas (Yeti) <yeti@physics.muni.cz>
 
 Copyright (C) 2009-2016 Michal Cihar <michal@cihar.com>
 
+Copyright (C) 2025-2026 Syed Shahrukh Hussain <syed.shahrukh@ossrevival.org>
+
 ## Description
 
 Enca (Extremely Naive Charset Analyser) consists of two main components:

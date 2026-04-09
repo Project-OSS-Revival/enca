@@ -1,7 +1,8 @@
 #============================================================================
-# Enca v1.21 (2025-10-20)  guess and convert encoding of text files
+# Enca v1.22 (2026-04-09)  guess and convert encoding of text files
 # Copyright (C) 2000-2003 David Necas (Yeti) <yeti@physics.muni.cz>
 # Copyright (C) 2009-2016 Michal Cihar <michal@cihar.com>
+# Copyright (C) 2025-2026 Syed Shahrukh Hussain <syed.shahrukh@ossrevival.org>
 #============================================================================
 
 List of user-visible changes in Enca
@@ -10,6 +11,12 @@ More detailed log can be obtained from older changelogs or git log.
 Legend: + new feature
         * change of behaviour (including disappearing of a feature)
         - bugfix
+
+enca-1.22
+  - Fix for failures due to non-portable modern-bashism.
+  - Add missing Finnish files to Makefile.am.
+  - Fix autoreconf with >= gettext-0.24.
+  * Update URLs to latest in README.md.
 
 enca-1.21
   + Add support for Finnish language with CP1267 charset.

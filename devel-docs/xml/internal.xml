@@ -106,6 +106,7 @@
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-BG:CAPS">ENCA_LANGUAGE_BG</link></entry></row>
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-CS:CAPS">ENCA_LANGUAGE_CS</link></entry></row>
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-ET:CAPS">ENCA_LANGUAGE_ET</link></entry></row>
+<row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-FI:CAPS">ENCA_LANGUAGE_FI</link></entry></row>
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-HR:CAPS">ENCA_LANGUAGE_HR</link></entry></row>
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-HU:CAPS">ENCA_LANGUAGE_HU</link></entry></row>
 <row><entry role="variable_type">extern const EncaLanguageInfo </entry><entry role="function_name"><link linkend="ENCA-LANGUAGE-LT:CAPS">ENCA_LANGUAGE_LT</link></entry></row>

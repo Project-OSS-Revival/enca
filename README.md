@@ -87,12 +87,12 @@ GNU General Public License.  Please see COPYING for details.
 
 ## Web resources
 
-Enca can be found at https://github.com/nijel/enca/
+Enca can be found at https://github.com/Project-OSS-Revival/enca/
 
 
 ## Bugs
 
-Report problems at <https://github.com/nijel/enca/issues>. Some known bugs have
+Report problems at <https://github.com/Project-OSS-Revival/enca/issues>. Some known bugs have
 been collected in BUGS section of enca manual page.
 
 

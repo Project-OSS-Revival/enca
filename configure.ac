@@ -2,7 +2,7 @@ dnl configure.in by David Necas (Yeti) <yeti@physics.muni.cz>
 dnl This file is in public domain.
 dnl Process this file with autoconf to produce a configure script.
 dnl Shake before use.
-AC_INIT([Enca],[1.21],[https://github.com/nijel/enca/issues])
+AC_INIT([Enca],[1.21],[https://github.com/Project-OSS-Revival/enca/issues])
 AC_PREREQ([2.69])
 AC_CONFIG_SRCDIR(src/enca.c)
 AC_CONFIG_MACRO_DIR([m4])

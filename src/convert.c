@@ -501,10 +501,15 @@ xtable(int from_charset)
       return NULL;
 
     {
+#ifndef NDEBUG
       int map_created;
       map_created = enca_charset_ucs2_map(options.target_enc.charset,
                                           xdata.target_map);
       assert(map_created);
+#else
+      enca_charset_ucs2_map(options.target_enc.charset,
+                            xdata.target_map);
+#endif
     }
     atexit(xdata_free);
   }
@@ -526,9 +531,13 @@ xtable(int from_charset)
 
   /* Otherwise it must be generated */
   {
+#ifndef NDEBUG
     int map_created;
     map_created = enca_charset_ucs2_map(from_charset, from_map);
     assert(map_created);
+#else
+    enca_charset_ucs2_map(from_charset, from_map);
+#endif
   }
 
   for (i = 0; i < 0x10000; i++)

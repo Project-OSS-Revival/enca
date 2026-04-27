@@ -329,7 +329,7 @@ is_valid_utf7(EncaAnalyserState *analyser)
   const size_t *const counts = analyser->counts;
 
   size_t utf7count = 0; /* number of >7bit characters */
-  unsigned char *p,*q;
+  const unsigned char *p,*q;
 
   /* When the file doesn't contain enough UTF-7 shift characters,
      don't waste time scanning it. */

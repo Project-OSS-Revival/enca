@@ -668,7 +668,7 @@ enca_eol_surface(const unsigned char *buffer,
                  size_t size,
                  const size_t *counts)
 {
-  unsigned char *p;
+  const unsigned char *p;
   size_t i;
 
   /* Return BINARY when the sample contains some strange characters.

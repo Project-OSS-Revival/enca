@@ -20,7 +20,7 @@ jobs:
       - name: Fixup docs
         run: find devel-docs/html/ -type f -name '*.html' -print0 | xargs -r -0 sed -i 's@/libenca/@/doc/@'
       - name: Deploy
-        uses: peaceiris/actions-gh-pages@v4.0.0
+        uses: peaceiris/actions-gh-pages@v4.1.0
         if: github.event_name == 'push' && github.event.ref == 'refs/heads/master'
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
